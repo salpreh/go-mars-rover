@@ -99,3 +99,29 @@ func Test_ShouldProcessMultipleCommands(t *testing.T) {
 		t.Errorf("Mars rover not moved correctly: %+v", rover)
 	}
 }
+
+func Test_ShouldTurnRight(t *testing.T) {
+	// given
+	rover := domain.NewRover(1, 2, domain.North)
+
+	// when
+	err := rover.ProcessCommand("r")
+
+	// then
+	if err != nil || rover.Direction != domain.East {
+		t.Errorf("Mars rover not turned correctly: %+v", rover)
+	}
+}
+
+func Test_ShouldTurnLeft(t *testing.T) {
+	// given
+	rover := domain.NewRover(1, 2, domain.North)
+
+	// when
+	err := rover.ProcessCommand("l")
+
+	// then
+	if err != nil || rover.Direction != domain.West {
+		t.Errorf("Mars rover not turned correctly: %+v", rover)
+	}
+}

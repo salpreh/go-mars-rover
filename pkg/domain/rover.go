@@ -32,6 +32,10 @@ func (rov *Rover) ProcessCommand(command string) error {
 		rov.moveForward()
 	case Backward:
 		rov.moveBackward()
+	case TurnRight:
+		rov.turnRight()
+	case TurnLeft:
+		rov.turnLeft()
 	default:
 		return errors.New("Unknown command: " + command)
 	}
@@ -49,6 +53,18 @@ func (rov *Rover) moveBackward() {
 	xDirection, yDirection := getDirectionMovementVector(rov.Direction)
 	rov.Position.X += xDirection * -1
 	rov.Position.Y += yDirection * -1
+}
+
+func (rov *Rover) turnRight() {
+	rov.Direction = (rov.Direction + 1) % 4
+}
+
+func (rov *Rover) turnLeft() {
+	if rov.Direction == 0 {
+		rov.Direction = 3
+	} else {
+		rov.Direction = (rov.Direction - 1) % 4
+	}
 }
 
 func getDirectionMovementVector(direction Direction) (int, int) {
@@ -75,12 +91,14 @@ type Direction int
 
 const (
 	North Direction = iota
-	South
 	East
+	South
 	West
 )
 
 const (
-	Forward  = "f"
-	Backward = "b"
+	Forward   = "f"
+	Backward  = "b"
+	TurnLeft  = "l"
+	TurnRight = "r"
 )
