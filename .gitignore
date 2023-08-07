@@ -21,9 +21,7 @@
 .idea/
 
 # Output directories
-/bin/
-/pkg/
-/build/
+/build
 
 # macOS directory attributes
 .DS_Store
