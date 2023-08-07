@@ -7,7 +7,7 @@ import (
 
 func main() {
 	rover := createRover()
-	commands := []string{"f", "f", "r", "b", "r", "f", "l", "l", "l", "f"} // Ends in -2, 1
+	commands := []string{"f", "f", "r", "b", "r", "f", "l", "l", "l", "f"} // Ends in 8, 1
 
 	fmt.Printf("Current rover status: %+v\n", *rover)
 

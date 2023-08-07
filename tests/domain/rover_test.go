@@ -10,6 +10,7 @@ func Test_ShouldCreateNewRover(t *testing.T) {
 	expected := domain.Rover{
 		Position:  domain.Coordinate{1, 2},
 		Direction: domain.North,
+		MarsMap:   domain.Map{10, 10},
 	}
 
 	// when
@@ -23,7 +24,7 @@ func Test_ShouldCreateNewRover(t *testing.T) {
 
 func Test_ShouldProcessForwardCommandY(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.North)
+	rover := createMarsRover(domain.North)
 
 	// when
 	err := rover.ProcessCommand("f")
@@ -36,7 +37,7 @@ func Test_ShouldProcessForwardCommandY(t *testing.T) {
 
 func Test_ShouldProcessForwardCommandX(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.East)
+	rover := createMarsRover(domain.East)
 
 	// when
 	err := rover.ProcessCommand("f")
@@ -49,7 +50,7 @@ func Test_ShouldProcessForwardCommandX(t *testing.T) {
 
 func Test_ShouldProcessBackwardCommandY(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.North)
+	rover := createMarsRover(domain.North)
 
 	// when
 	err := rover.ProcessCommand("b")
@@ -62,7 +63,7 @@ func Test_ShouldProcessBackwardCommandY(t *testing.T) {
 
 func Test_ShouldProcessBackwardCommandX(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.East)
+	rover := createMarsRover(domain.East)
 
 	// when
 	err := rover.ProcessCommand("b")
@@ -75,7 +76,7 @@ func Test_ShouldProcessBackwardCommandX(t *testing.T) {
 
 func Test_ShouldReturnErrorWhenUnknownCommand(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.North)
+	rover := createMarsRover(domain.North)
 
 	// when
 	err := rover.ProcessCommand("g")
@@ -88,7 +89,7 @@ func Test_ShouldReturnErrorWhenUnknownCommand(t *testing.T) {
 
 func Test_ShouldProcessMultipleCommands(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.North)
+	rover := createMarsRover(domain.North)
 	commands := []string{"f", "f", "b", "f"}
 
 	// when
@@ -102,7 +103,7 @@ func Test_ShouldProcessMultipleCommands(t *testing.T) {
 
 func Test_ShouldTurnRight(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.North)
+	rover := createMarsRover(domain.North)
 
 	// when
 	err := rover.ProcessCommand("r")
@@ -115,7 +116,7 @@ func Test_ShouldTurnRight(t *testing.T) {
 
 func Test_ShouldTurnLeft(t *testing.T) {
 	// given
-	rover := domain.NewRover(1, 2, domain.North)
+	rover := createMarsRover(domain.North)
 
 	// when
 	err := rover.ProcessCommand("l")
@@ -123,5 +124,39 @@ func Test_ShouldTurnLeft(t *testing.T) {
 	// then
 	if err != nil || rover.Direction != domain.West {
 		t.Errorf("Mars rover not turned correctly: %+v", rover)
+	}
+}
+
+func Test_ShouldWrapPositionAtXEdge(t *testing.T) {
+	// given
+	rover := createMarsRover(domain.East)
+
+	// when
+	rover.ProcessCommands([]string{"b", "b", "b"})
+
+	// then
+	if rover.Position.X != 3 {
+		t.Errorf("Mars rover position not wrapped correctly: %+v", rover)
+	}
+}
+
+func Test_ShouldWrapPositionAtYEdge(t *testing.T) {
+	// given
+	rover := createMarsRover(domain.North)
+
+	// when
+	rover.ProcessCommands([]string{"f", "f", "f"})
+
+	// then
+	if rover.Position.Y != 0 {
+		t.Errorf("Mars rover position not wrapped correctly: %+v", rover)
+	}
+}
+
+func createMarsRover(direction domain.Direction) *domain.Rover {
+	return &domain.Rover{
+		Position:  domain.Coordinate{1, 2},
+		Direction: direction,
+		MarsMap:   domain.Map{5, 5},
 	}
 }
