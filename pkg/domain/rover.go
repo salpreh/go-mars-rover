@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"log"
 )
 
@@ -15,48 +16,64 @@ func NewRover(xPosition int, yPosition int, direction Direction) *Rover {
 	return &Rover{
 		Position:  Coordinate{xPosition, yPosition},
 		Direction: direction,
-		MarsMap:   Map{10, 10},
+		MarsMap:   *NewMap(10, 10),
 	}
 }
 
-func (rov *Rover) ProcessCommands(commands []string) {
-	for _, command := range commands {
+func (rov *Rover) ProcessCommands(commands []string) error {
+	for i, command := range commands {
 		err := rov.ProcessCommand(command)
 		if err != nil {
-			log.Printf("Unknown command skipped: %s\n", err)
-		}
-	}
-}
+			log.Printf("Unable to process command no. %d. Skipping following commands. ERR: %s\n", i, err)
 
-func (rov *Rover) ProcessCommand(command string) error {
-	switch command {
-	case Forward:
-		rov.moveForward()
-	case Backward:
-		rov.moveBackward()
-	case TurnRight:
-		rov.turnRight()
-	case TurnLeft:
-		rov.turnLeft()
-	default:
-		return errors.New("Unknown command: " + command)
+			return errors.Join(
+				errors.New(fmt.Sprintf("Stopped processing at command no. %d", i)),
+				err,
+			)
+		}
 	}
 
 	return nil
 }
 
-func (rov *Rover) moveForward() {
-	xDirection, yDirection := getDirectionMovementVector(rov.Direction)
-	rov.Position.X += xDirection
-	rov.Position.Y += yDirection
-	rov.adjustPosition()
+func (rov *Rover) ProcessCommand(command string) error {
+	var err error
+	switch command {
+	case Forward:
+		err = rov.moveForward()
+	case Backward:
+		err = rov.moveBackward()
+	case TurnRight:
+		rov.turnRight()
+	case TurnLeft:
+		rov.turnLeft()
+	default:
+		err = errors.New("Unknown command: " + command)
+	}
+
+	return err
 }
 
-func (rov *Rover) moveBackward() {
+func (rov *Rover) moveForward() error {
 	xDirection, yDirection := getDirectionMovementVector(rov.Direction)
-	rov.Position.X += xDirection * -1
-	rov.Position.Y += yDirection * -1
-	rov.adjustPosition()
+	newPosition := Coordinate{
+		X: rov.Position.X + xDirection,
+		Y: rov.Position.Y + yDirection,
+	}
+	rov.adjustPosition(&newPosition)
+
+	return rov.updatePosition(&newPosition)
+}
+
+func (rov *Rover) moveBackward() error {
+	xDirection, yDirection := getDirectionMovementVector(rov.Direction)
+	newPosition := Coordinate{
+		X: rov.Position.X + xDirection*-1,
+		Y: rov.Position.Y + yDirection*-1,
+	}
+	rov.adjustPosition(&newPosition)
+
+	return rov.updatePosition(&newPosition)
 }
 
 func (rov *Rover) turnRight() {
@@ -71,25 +88,35 @@ func (rov *Rover) turnLeft() {
 	}
 }
 
-// adjustPosition Adjusts current rover position checking Mars map.
+// adjustPosition Adjusts provided coordinate checking Mars map.
 // If limits of the map has been exceeded wraps position to other end (e.g. for 5 by 5 map if x position is 6 it will be corrected to 1)
-// Position is 0 indexed, so for a map of 5 width last position is 4.
-func (rov *Rover) adjustPosition() {
-	for rov.Position.X >= rov.MarsMap.Width {
-		rov.Position.X -= rov.MarsMap.Width
+// Coordinate is 0 indexed, so for a map of 5 width last position is 4.
+func (rov *Rover) adjustPosition(coord *Coordinate) {
+	for coord.X >= rov.MarsMap.Width() {
+		coord.X -= rov.MarsMap.Width()
 	}
 
-	for rov.Position.X < 0 {
-		rov.Position.X += rov.MarsMap.Width
+	for coord.X < 0 {
+		coord.X += rov.MarsMap.Width()
 	}
 
-	for rov.Position.Y >= rov.MarsMap.Height {
-		rov.Position.Y -= rov.MarsMap.Height
+	for coord.Y >= rov.MarsMap.Height() {
+		coord.Y -= rov.MarsMap.Height()
 	}
 
-	for rov.Position.Y < 0 {
-		rov.Position.Y += rov.MarsMap.Height
+	for coord.Y < 0 {
+		coord.Y += rov.MarsMap.Height()
 	}
+}
+
+func (rov *Rover) updatePosition(newPosition *Coordinate) error {
+	if rov.MarsMap.HasObstacle(*newPosition) {
+		return errors.New(fmt.Sprintf("Unable to move to position, obstacle in coordinates %+v", newPosition))
+	}
+
+	rov.Position = *newPosition
+
+	return nil
 }
 
 func getDirectionMovementVector(direction Direction) (int, int) {
