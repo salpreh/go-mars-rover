@@ -55,7 +55,7 @@ func (rov *Rover) ProcessCommand(command string) error {
 }
 
 func (rov *Rover) moveForward() error {
-	xDirection, yDirection := getDirectionMovementVector(rov.Direction)
+	xDirection, yDirection := getMovementDirectionVector(rov.Direction)
 	newPosition := Coordinate{
 		X: rov.Position.X + xDirection,
 		Y: rov.Position.Y + yDirection,
@@ -66,7 +66,7 @@ func (rov *Rover) moveForward() error {
 }
 
 func (rov *Rover) moveBackward() error {
-	xDirection, yDirection := getDirectionMovementVector(rov.Direction)
+	xDirection, yDirection := getMovementDirectionVector(rov.Direction)
 	newPosition := Coordinate{
 		X: rov.Position.X + xDirection*-1,
 		Y: rov.Position.Y + yDirection*-1,
@@ -119,7 +119,7 @@ func (rov *Rover) updatePosition(newPosition *Coordinate) error {
 	return nil
 }
 
-func getDirectionMovementVector(direction Direction) (int, int) {
+func getMovementDirectionVector(direction Direction) (int, int) {
 	switch direction {
 	case North:
 		return 0, 1
